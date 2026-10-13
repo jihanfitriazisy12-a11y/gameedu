@@ -1,0 +1,1166 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Petualangan Katak Pintar: Perkalian & Pembagian</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #4ade80; /* Hijau katak */
+            --primary-dark: #16a34a;
+            --secondary: #0ea5e9; /* Biru air */
+            --secondary-dark: #0284c7;
+            --accent: #f59e0b; /* Kuning/Oranye */
+            --danger: #ef4444; /* Merah salah */
+            --success: #22c55e; /* Hijau benar */
+            --text-main: #1e293b;
+            --text-light: #f8fafc;
+            --pond-bg: linear-gradient(180deg, #38bdf8 0%, #0284c7 100%);
+            --leaf: #65a30d;
+            --leaf-dark: #4d7c0f;
+            --font-main: 'Nunito', sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            font-family: var(--font-main);
+            color: var(--text-main);
+            overflow: hidden;
+            background-color: #0f172a;
+        }
+
+        #app {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            background: var(--pond-bg);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            padding: 20px;
+        }
+
+        .screen.active {
+            display: flex;
+            animation: fadeIn 0.5s ease;
+        }
+
+        /* UI Global Controls */
+        #global-controls {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            z-index: 100;
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-icon {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid white;
+            color: white;
+            border-radius: 50%;
+            width: 45px;
+            height: 45px;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(5px);
+            transition: all 0.2s;
+        }
+
+        .btn-icon:hover { background: rgba(255, 255, 255, 0.4); transform: scale(1.1); }
+
+        .title-container {
+            text-align: center;
+            margin-bottom: 30px;
+            background: rgba(255,255,255,0.9);
+            padding: 20px 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            border: 4px solid var(--primary-dark);
+            max-width: 90%;
+        }
+
+        h1 {
+            font-size: clamp(1.5rem, 4vw, 3rem);
+            color: var(--primary-dark);
+            text-shadow: 2px 2px 0px white;
+            margin-bottom: 10px;
+            line-height: 1.2;
+        }
+
+        .credits {
+            font-size: clamp(0.9rem, 2vw, 1.2rem);
+            color: #475569;
+            font-weight: bold;
+        }
+
+        .btn {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.5rem;
+            font-weight: 900;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 6px 0 #d97706, 0 10px 10px rgba(0,0,0,0.2);
+            transition: all 0.1s;
+            font-family: var(--font-main);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn:active {
+            transform: translateY(6px);
+            box-shadow: 0 0px 0 #d97706, 0 4px 4px rgba(0,0,0,0.2);
+        }
+
+        .btn-secondary { background: var(--secondary); box-shadow: 0 6px 0 var(--secondary-dark); }
+        .btn-secondary:active { box-shadow: 0 0px 0 var(--secondary-dark); }
+
+        .mode-container {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+            max-width: 900px;
+        }
+
+        .mode-card {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            width: 250px;
+            text-align: center;
+            cursor: pointer;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+            border: 4px solid transparent;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .mode-card:hover { transform: translateY(-10px) scale(1.05); border-color: var(--primary); }
+        .mode-icon { font-size: 4rem; margin-bottom: 15px; }
+        .mode-title { font-size: 1.5rem; font-weight: 900; color: var(--text-main); margin-bottom: 10px; }
+        .mode-desc { font-size: 1rem; color: #64748b; }
+
+        /* Pengaturan Menu */
+        .settings-panel {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            width: 90%;
+            max-width: 500px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .setting-group { display: flex; flex-direction: column; gap: 5px; }
+        .setting-group label { font-weight: bold; color: var(--text-main); }
+        .setting-group select {
+            padding: 10px; border-radius: 10px; border: 2px solid #cbd5e1;
+            font-family: var(--font-main); font-size: 1rem; outline: none;
+        }
+
+        #game-board {
+            width: 100%;
+            height: 100%;
+            display: grid;
+            gap: 4px;
+            background: #0f172a; /* Pemisah grid */
+            padding: 4px;
+        }
+
+        /* Dynamic classes untuk Layout */
+        .layout-solo { grid-template-columns: 1fr; grid-template-rows: 1fr; }
+        .layout-duel { grid-template-columns: 1fr; grid-template-rows: 1fr 1fr; } /* Mobile default: tumpuk vertikal */
+        .layout-squad { grid-template-columns: repeat(4, 1fr); grid-template-rows: 1fr; } /* 4 Layar Vertikal Berdampingan */
+
+        @media (min-width: 768px) {
+            .layout-duel { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr; } /* Tablet/Desktop: sampingan */
+        }
+
+        @media (max-width: 767px) {
+            .layout-squad { grid-template-columns: 1fr; grid-template-rows: repeat(4, 1fr); overflow-y: auto; } /* Ditumpuk jika layar sangat sempit */
+        }
+
+        /* Optimasasi tampilan Squad Mode (Layar Vertikal) */
+        .layout-squad .question-text { font-size: clamp(1rem, 2.2vw, 1.6rem); margin-bottom: 5px; }
+        .layout-squad .answer-btn { padding: 8px 4px; font-size: clamp(0.85rem, 1.5vw, 1.3rem); }
+        .layout-squad .player-id { font-size: clamp(0.8rem, 1.2vw, 1rem); }
+        .layout-squad .stats-group { font-size: clamp(0.75rem, 1.2vw, 0.95rem); gap: 8px; }
+        .layout-squad .lily-pad { width: 70px; height: 25px; }
+        .layout-squad .frog { width: 40px; height: 32px; bottom: 18px; }
+        .layout-squad .frog-eyes { top: -8px; padding: 0 6px; }
+        .layout-squad .eye { width: 14px; height: 14px; }
+        .layout-squad .pupil { width: 6px; height: 6px; top: 3px; left: 4px; }
+
+        /* Area Pemain Individu */
+        .player-area {
+            position: relative;
+            background: var(--pond-bg);
+            border-radius: 10px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Overlay Status (Selesai/Kalah) */
+        .player-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 50;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+        .player-overlay.active { opacity: 1; pointer-events: all; }
+        .player-overlay h2 { font-size: 2rem; margin-bottom: 10px; text-shadow: 2px 2px 4px black; text-align:center;}
+
+        .player-header {
+            background: rgba(255,255,255,0.9);
+            padding: 5px 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            z-index: 10;
+        }
+
+        .player-id { font-weight: 900; color: var(--primary-dark); font-size: clamp(1rem, 2vw, 1.2rem); }
+        .stats-group { display: flex; gap: 15px; font-weight: bold; font-size: clamp(0.9rem, 2vw, 1.1rem); }
+        .lives { color: var(--danger); }
+        
+        .progress-bar-container {
+            width: 100%;
+            height: 6px;
+            background: #e2e8f0;
+        }
+        .progress-bar {
+            height: 100%;
+            background: var(--success);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .visual-area {
+            flex-grow: 1;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+            padding-bottom: 20px;
+        }
+
+        /* CSS Art: Daun Teratai */
+        .lily-pad {
+            width: 120px;
+            height: 40px;
+            background: var(--leaf);
+            border-radius: 50%;
+            position: absolute;
+            bottom: 20px;
+            box-shadow: inset 0 -5px 0 var(--leaf-dark), 0 10px 10px rgba(0,0,0,0.2);
+            transition: all 0.5s ease;
+        }
+        .lily-pad::before { /* Celah daun */
+            content: '';
+            position: absolute;
+            width: 0; height: 0;
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-top: 20px solid var(--pond-bg);
+            top: 10px; right: 10px;
+            transform: rotate(45deg);
+        }
+
+        .pad-start { bottom: 20px; z-index: 2; }
+        .pad-target { bottom: 120px; transform: scale(0.8); opacity: 0; z-index: 1; }
+
+        /* CSS Art: Katak */
+        .frog {
+            width: 60px;
+            height: 50px;
+            background: var(--primary);
+            border-radius: 50% 50% 40% 40%;
+            position: absolute;
+            bottom: 30px; /* di atas daun start */
+            z-index: 5;
+            box-shadow: inset -5px -5px 0 rgba(0,0,0,0.1);
+            transition: transform 0.1s;
+        }
+        .frog-eyes {
+            position: absolute; top: -10px; width: 100%; display: flex; justify-content: space-between; padding: 0 10px;
+        }
+        .eye {
+            width: 20px; height: 20px; background: white; border-radius: 50%; position: relative;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .pupil {
+            width: 8px; height: 8px; background: black; border-radius: 50%;
+            position: absolute; top: 5px; left: 6px; transition: all 0.2s;
+        }
+        .frog-mouth {
+            width: 20px; height: 10px; border-bottom: 3px solid #064e3b; border-radius: 0 0 20px 20px;
+            position: absolute; bottom: 15px; left: 20px; transition: all 0.2s;
+        }
+        
+        /* Ekspresi Katak */
+        .frog.happy .frog-mouth { height: 15px; background: #f87171; }
+        .frog.sad .frog-mouth { border-bottom: none; border-top: 3px solid #064e3b; border-radius: 20px 20px 0 0; bottom: 10px;}
+        .frog.sad .pupil { top: 2px; }
+
+        @keyframes jumpAnim {
+            0% { transform: translateY(0) scale(1, 1); }
+            20% { transform: translateY(10px) scale(1.1, 0.8); } /* Squash */
+            50% { transform: translateY(-120px) scale(0.9, 1.1); } /* Stretch & puncak */
+            80% { transform: translateY(-100px) scale(1, 1); } /* Turun ke target */
+            100% { transform: translateY(-100px) scale(1.1, 0.9); } /* Mendarat */
+        }
+        @keyframes fallAnim {
+            0% { transform: translateY(0) rotate(0deg); }
+            30% { transform: translateY(-30px) rotate(45deg); }
+            100% { transform: translateY(50px) rotate(180deg) scale(0.5); opacity: 0; }
+        }
+        @keyframes splashAnim {
+            0% { transform: scale(0); opacity: 1; border-width: 10px; }
+            100% { transform: scale(3); opacity: 0; border-width: 0px; }
+        }
+
+        .is-jumping { animation: jumpAnim 0.6s forwards; }
+        .is-falling { animation: fallAnim 0.6s forwards; }
+
+        .splash {
+            position: absolute; bottom: 20px; width: 60px; height: 20px;
+            border: solid white; border-radius: 50%; opacity: 0; pointer-events: none;
+        }
+        .splash.active { animation: splashAnim 0.5s ease-out; }
+        
+        .feedback-text {
+            position: absolute; top: 40%; font-size: 2rem; font-weight: 900;
+            opacity: 0; text-shadow: 2px 2px 0 black; pointer-events: none; z-index: 20;
+            transform: translateY(20px); transition: all 0.3s;
+        }
+        .feedback-text.show { opacity: 1; transform: translateY(0); }
+        .feedback-correct { color: var(--success); }
+        .feedback-wrong { color: var(--danger); }
+
+        .question-panel {
+            background: white;
+            width: 100%;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            border-top: 4px solid rgba(0,0,0,0.1);
+            z-index: 10;
+        }
+
+        .question-header {
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;
+        }
+        
+        .timer-bar-bg { flex-grow: 1; height: 10px; background: #e2e8f0; border-radius: 5px; margin: 0 10px; overflow: hidden;}
+        .timer-bar { height: 100%; background: var(--accent); width: 100%; }
+        .timer-bar.warning { background: var(--danger); }
+
+        .question-text {
+            font-size: clamp(1.5rem, 3vw, 2.5rem);
+            font-weight: 900;
+            text-align: center;
+            margin-bottom: 10px;
+            color: var(--text-main);
+        }
+
+        .answers-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .answer-btn {
+            background: #f1f5f9;
+            border: 2px solid #cbd5e1;
+            padding: 10px;
+            font-size: clamp(1.2rem, 2vw, 1.8rem);
+            font-weight: bold;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.1s;
+            font-family: var(--font-main);
+            color: var(--primary-dark);
+        }
+
+        .answer-btn:hover { background: #e2e8f0; transform: scale(1.02); }
+        .answer-btn:active { transform: scale(0.95); }
+        .answer-btn:disabled { pointer-events: none; opacity: 0.8; }
+
+        .answer-btn.correct { background: var(--success); color: white; border-color: #16a34a; box-shadow: 0 0 15px var(--success); }
+        .answer-btn.wrong { background: var(--danger); color: white; border-color: #b91c1c; }
+
+        .results-container {
+            background: white; padding: 30px; border-radius: 20px; width: 90%; max-width: 800px;
+            text-align: center; max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        .leaderboard { display: flex; flex-direction: column; gap: 10px; margin: 20px 0; }
+        .leaderboard-item {
+            display: flex; justify-content: space-between; background: #f8fafc; padding: 15px;
+            border-radius: 10px; font-weight: bold; border-left: 5px solid #cbd5e1;
+        }
+        .rank-1 { border-color: #fbbf24; background: #fef3c7; }
+        .rank-2 { border-color: #94a3b8; }
+        .rank-3 { border-color: #b45309; }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        
+        /* Modifikasi untuk ukuran layar kecil agar pas */
+        @media (max-height: 600px) {
+            .visual-area { padding-bottom: 5px; }
+            .lily-pad { width: 80px; height: 30px; }
+            .frog { width: 45px; height: 35px; bottom: 20px;}
+            .question-text { font-size: 1.5rem; margin-bottom: 5px; }
+            .answer-btn { padding: 5px; font-size: 1.2rem;}
+        }
+
+        /* Utilities */
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+    <div id="app">
+        <!-- Kontrol Audio & Fullscreen -->
+        <div id="global-controls">
+            <button class="btn-icon" id="btn-audio" title="Audio On/Off">🔊</button>
+            <button class="btn-icon" id="btn-fullscreen" title="Layar Penuh">⛶</button>
+        </div>
+
+        <!-- LAYAR 1: Menu Utama -->
+        <div id="screen-menu" class="screen active">
+            <div class="title-container">
+                <h1>Petualangan Katak Pintar</h1>
+                <h2>Perkalian & Pembagian</h2>
+                <div style="margin: 20px 0;">
+                    <!-- Ilustrasi statis katak -->
+                    <div style="position:relative; width:100px; height:100px; margin:0 auto;">
+                        <div class="lily-pad" style="bottom: 0; left:-10px;"></div>
+                        <div class="frog" style="bottom: 10px; left: 20px;">
+                            <div class="frog-eyes"><div class="eye"><div class="pupil"></div></div><div class="eye"><div class="pupil"></div></div></div>
+                            <div class="frog-mouth"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <button class="btn" onclick="app.showScreen('screen-modes')">Mulai Bermain</button>
+        </div>
+
+        <!-- LAYAR 2: Pilih Mode -->
+        <div id="screen-modes" class="screen">
+            <h2 style="color:white; font-size:2rem; margin-bottom:20px; text-shadow:2px 2px black;">Pilih Mode Bermain</h2>
+            <div class="mode-container">
+                <div class="mode-card" onclick="app.selectMode('solo')">
+                    <div class="mode-icon">🐸</div>
+                    <div class="mode-title">Solo Mode</div>
+                    <div class="mode-desc">Main sendiri dan raih skor tertinggi! (1 Pemain)</div>
+                </div>
+                <div class="mode-card" onclick="app.selectMode('duel')">
+                    <div class="mode-icon">🐸🐸</div>
+                    <div class="mode-title">Duel Mode</div>
+                    <div class="mode-desc">Tantang satu temanmu! (2 Pemain)</div>
+                </div>
+                <div class="mode-card" onclick="app.selectMode('squad')">
+                    <div class="mode-icon">🐸🐸<br>🐸🐸</div>
+                    <div class="mode-title">Squad Mode</div>
+                    <div class="mode-desc">Seru-seruan 4 pemain dengan layar vertikal! (4 Pemain)</div>
+                </div>
+            </div>
+            <button class="btn btn-secondary" style="margin-top:30px; font-size:1rem; padding:10px 20px;" onclick="app.showScreen('screen-menu')">Kembali</button>
+        </div>
+
+        <div id="screen-settings" class="screen">
+            <div class="settings-panel">
+                <h2 style="text-align:center; color:var(--primary-dark);">Pengaturan Permainan</h2>
+                <div class="setting-group">
+                    <label>Tingkat Kesulitan:</label>
+                    <select id="set-diff">
+                        <option value="easy">Mudah (Angka Kecil)</option>
+                        <option value="medium" selected>Sedang (Campuran)</option>
+                        <option value="hard">Sulit (Angka Besar)</option>
+                    </select>
+                </div>
+                <div class="setting-group">
+                    <label>Jenis Operasi:</label>
+                    <select id="set-op">
+                        <option value="mul">Perkalian (×)</option>
+                        <option value="div">Pembagian (÷)</option>
+                        <option value="mixed" selected>Campuran (× & ÷)</option>
+                    </select>
+                </div>
+                <div class="setting-group">
+                    <label>Jumlah Soal:</label>
+                    <select id="set-qty">
+                        <option value="10" selected>10 Soal</option>
+                        <option value="15">15 Soal</option>
+                        <option value="20">20 Soal</option>
+                    </select>
+                </div>
+                <div class="setting-group">
+                    <label>Waktu per Soal:</label>
+                    <select id="set-time">
+                        <option value="10">10 Detik</option>
+                        <option value="15" selected>15 Detik</option>
+                        <option value="20">20 Detik</option>
+                    </select>
+                </div>
+                <div style="display:flex; justify-content:space-between; margin-top:20px;">
+                    <button class="btn btn-secondary" style="font-size:1rem; padding:10px;" onclick="app.showScreen('screen-modes')">Batal</button>
+                    <button class="btn" style="font-size:1rem; padding:10px 30px;" onclick="app.startGame()">Mainkan!</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- LAYAR 3: Papan Permainan -->
+        <div id="screen-game" class="screen" style="padding:0;">
+            <div id="game-board">
+                <!-- Area pemain akan di-generate oleh JavaScript di sini -->
+            </div>
+        </div>
+
+        <!-- LAYAR 4: Hasil -->
+        <div id="screen-results" class="screen">
+            <div class="results-container">
+                <h2 style="font-size:2.5rem; color:var(--primary-dark); margin-bottom:10px;">Permainan Selesai!</h2>
+                <div id="results-content"></div>
+                <div style="margin-top:20px; display:flex; gap:10px; justify-content:center;">
+                    <button class="btn" onclick="app.showScreen('screen-settings')">Main Lagi</button>
+                    <button class="btn btn-secondary" onclick="app.showScreen('screen-menu')">Menu Utama</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- SISTEM AUDIO (Web Audio API Synthesizer) ---
+        const audioSys = {
+            ctx: null,
+            enabled: true,
+            bgmInterval: null,
+            notes: [261.63, 329.63, 392.00, 523.25, 392.00, 329.63], // C4, E4, G4, C5, G4, E4 (Melodi ceria)
+            noteIndex: 0,
+            
+            init() {
+                if(!this.ctx) {
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    this.ctx = new AudioContext();
+                }
+                if(this.ctx.state === 'suspended') this.ctx.resume();
+            },
+            
+            toggle() {
+                this.enabled = !this.enabled;
+                const btn = document.getElementById('btn-audio');
+                btn.innerHTML = this.enabled ? '🔊' : '🔇';
+                if(!this.enabled) this.stopBGM();
+                else this.startBGM();
+                return this.enabled;
+            },
+
+            playTone(freq, type, duration, vol=0.1, slideFreq=null) {
+                if(!this.enabled || !this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+                if(slideFreq) {
+                    osc.frequency.exponentialRampToValueAtTime(slideFreq, this.ctx.currentTime + duration);
+                }
+                
+                gain.gain.setValueAtTime(vol, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + duration);
+                
+                osc.connect(gain); 
+                gain.connect(this.ctx.destination);
+                osc.start(); 
+                osc.stop(this.ctx.currentTime + duration);
+            },
+
+            // Fungsi khusus untuk membuat suara desisan/air (White Noise)
+            playNoise(duration, vol=0.2) {
+                if(!this.enabled || !this.ctx) return;
+                const bufferSize = this.ctx.sampleRate * duration;
+                const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) {
+                    data[i] = Math.random() * 2 - 1;
+                }
+                const noise = this.ctx.createBufferSource();
+                noise.buffer = buffer;
+                
+                // Filter frekuensi tinggi agar terdengar seperti cipratan air, bukan radio rusak
+                const filter = this.ctx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.value = 800;
+
+                const gain = this.ctx.createGain();
+                gain.gain.setValueAtTime(vol, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + duration);
+                
+                noise.connect(filter);
+                filter.connect(gain);
+                gain.connect(this.ctx.destination);
+                noise.start();
+            },
+
+            sfxJump() { 
+                // Efek kartun "Boing"
+                this.playTone(150, 'sine', 0.4, 0.3, 600); 
+            },
+            sfxSplash() { 
+                // Kombinasi nada rendah dan cipratan air
+                this.playTone(100, 'triangle', 0.5, 0.2, 50);
+                this.playNoise(0.5, 0.3);
+            },
+            sfxCorrect() { 
+                // Suara koin/bintang ceria (Do-Mi-Sol)
+                this.playTone(523.25, 'sine', 0.1, 0.1); 
+                setTimeout(()=>this.playTone(659.25, 'sine', 0.1, 0.1), 100);
+                setTimeout(()=>this.playTone(783.99, 'sine', 0.3, 0.1), 200);
+            },
+            sfxWrong() { 
+                // Suara buzzer kecewa yang menurun
+                this.playTone(200, 'sawtooth', 0.4, 0.1, 100); 
+                setTimeout(()=>this.playTone(180, 'sawtooth', 0.4, 0.1, 80), 150);
+            },
+            sfxOver() { 
+                // Terompet permainan selesai
+                this.playTone(440, 'square', 0.2, 0.1);
+                setTimeout(()=>this.playTone(440, 'square', 0.2, 0.1), 200);
+                setTimeout(()=>this.playTone(659.25, 'square', 0.5, 0.15), 400);
+            },
+            
+            startBGM() {
+                if(!this.enabled || !this.ctx) return;
+                this.stopBGM();
+                
+                // Membuat iringan melodi sederhana yang diulang menggunakan interval
+                this.bgmInterval = setInterval(() => {
+                    if(this.ctx.state === 'running') {
+                        const freq = this.notes[this.noteIndex];
+                        // Suara sangat pelan (0.03) seperti xylophone/marimba
+                        this.playTone(freq, 'sine', 0.2, 0.03); 
+                        this.noteIndex = (this.noteIndex + 1) % this.notes.length;
+                    }
+                }, 400); // Kecepatan tempo
+            },
+            
+            stopBGM() {
+                if(this.bgmInterval) {
+                    clearInterval(this.bgmInterval);
+                    this.bgmInterval = null;
+                }
+            }
+        };
+
+        // --- STREAMING_CHUNK:Logika JavaScript - Generator Soal Matematika ---
+        const mathGen = {
+            generate(operation, difficulty) {
+                let num1, num2, answer, text;
+                const op = operation === 'mixed' ? (Math.random() > 0.5 ? 'mul' : 'div') : operation;
+                
+                let max = difficulty === 'easy' ? 5 : (difficulty === 'medium' ? 10 : 15);
+                let min = difficulty === 'hard' ? 3 : 1;
+
+                if (op === 'mul') {
+                    num1 = Math.floor(Math.random() * (max - min + 1)) + min;
+                    num2 = Math.floor(Math.random() * (max - min + 1)) + min;
+                    answer = num1 * num2;
+                    text = `${num1} × ${num2}`;
+                } else {
+                    // Division: Ensure integer result
+                    num2 = Math.floor(Math.random() * (max - min + 1)) + min; // Divisor
+                    answer = Math.floor(Math.random() * (max - min + 1)) + min; // Result
+                    num1 = num2 * answer; // Dividend
+                    text = `${num1} ÷ ${num2}`;
+                }
+
+                return { text, answer, op };
+            },
+
+            createQuestionSet(count, operation, difficulty) {
+                const qSet = [];
+                for(let i=0; i<count; i++) {
+                    const q = this.generate(operation, difficulty);
+                    
+                    // Generate 3 wrong answers
+                    const options = new Set([q.answer]);
+                    let attempts = 0;
+                    while(options.size < 4 && attempts < 50) {
+                        let offset = Math.floor(Math.random() * 10) + 1;
+                        let sign = Math.random() > 0.5 ? 1 : -1;
+                        let wrong = q.answer + (offset * sign);
+                        if(wrong > 0 && !options.has(wrong)) options.add(wrong);
+                        attempts++;
+                    }
+                    
+                    // Fallback if set logic fails to find unique
+                    let arrOpts = Array.from(options);
+                    while(arrOpts.length < 4) { arrOpts.push(q.answer + Math.floor(Math.random()*100)+1); }
+
+                    // Shuffle
+                    arrOpts.sort(() => Math.random() - 0.5);
+                    
+                    qSet.push({
+                        text: q.text,
+                        options: arrOpts,
+                        correctIndex: arrOpts.indexOf(q.answer)
+                    });
+                }
+                return qSet;
+            }
+        };
+
+        // --- STREAMING_CHUNK:Logika JavaScript - Inti Permainan & State ---
+        const app = {
+            config: {
+                mode: 'solo', // solo, duel, squad
+                difficulty: 'medium',
+                operation: 'mixed',
+                questions: 10,
+                timeLimit: 15
+            },
+            players: [],
+            activeTimers: {},
+            
+            showScreen(id) {
+                document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+                document.getElementById(id).classList.add('active');
+                if(id !== 'screen-game') audioSys.stopBGM();
+            },
+
+            selectMode(mode) {
+                this.config.mode = mode;
+                this.showScreen('screen-settings');
+            },
+
+            toggleFullscreen() {
+                if (!document.fullscreenElement) {
+                    document.documentElement.requestFullscreen().catch(err => {
+                        console.log(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
+                    });
+                } else {
+                    document.exitFullscreen();
+                }
+            },
+
+            startGame() {
+                audioSys.init(); // Initialize audio context on first user interaction
+                audioSys.startBGM();
+                
+                // Get Settings
+                this.config.difficulty = document.getElementById('set-diff').value;
+                this.config.operation = document.getElementById('set-op').value;
+                this.config.questions = parseInt(document.getElementById('set-qty').value);
+                this.config.timeLimit = parseInt(document.getElementById('set-time').value);
+
+                this.setupPlayers();
+                this.renderBoard();
+                this.showScreen('screen-game');
+                
+                // Start sequence for all players
+                this.players.forEach(p => {
+                    this.renderQuestion(p.id);
+                    this.startTimer(p.id);
+                });
+            },
+
+            setupPlayers() {
+                let count = this.config.mode === 'solo' ? 1 : (this.config.mode === 'duel' ? 2 : 4);
+                this.players = [];
+                
+                // Generate a common question set for fairness in multiplayer
+                const commonQuestions = mathGen.createQuestionSet(this.config.questions, this.config.operation, this.config.difficulty);
+
+                for(let i=1; i<=count; i++) {
+                    // Deep copy questions so modifications don't leak
+                    const pQuestions = JSON.parse(JSON.stringify(commonQuestions));
+                    
+                    this.players.push({
+                        id: i,
+                        name: `Player ${i}`,
+                        score: 0,
+                        lives: 3,
+                        currentQ: 0,
+                        questions: pQuestions,
+                        status: 'playing', // playing, done, dead
+                        correctCount: 0,
+                        timeTaken: 0,
+                        animating: false
+                    });
+                }
+            },
+
+            // --- STREAMING_CHUNK:Logika JavaScript - Rendering UI Permainan ---
+            renderBoard() {
+                const board = document.getElementById('game-board');
+                board.innerHTML = '';
+                board.className = `layout-${this.config.mode}`;
+
+                this.players.forEach(p => {
+                    const pDiv = document.createElement('div');
+                    pDiv.className = 'player-area';
+                    pDiv.id = `player-area-${p.id}`;
+                    
+                    pDiv.innerHTML = `
+                        <!-- Progress Bar -->
+                        <div class="progress-bar-container"><div class="progress-bar" id="prog-${p.id}"></div></div>
+                        
+                        <!-- Header -->
+                        <div class="player-header">
+                            <div class="player-id">${p.name}</div>
+                            <div class="stats-group">
+                                <div title="Skor">⭐ <span id="score-${p.id}">0</span></div>
+                                <div class="lives" title="Nyawa">❤️ <span id="lives-${p.id}">3</span></div>
+                            </div>
+                        </div>
+
+                        <!-- Visual Area (Pond, Frog, Leaf) -->
+                        <div class="visual-area">
+                            <div class="feedback-text" id="fb-${p.id}"></div>
+                            
+                            <!-- Leaf Start -->
+                            <div class="lily-pad pad-start" id="pad-start-${p.id}"></div>
+                            <!-- Leaf Target (Hidden initially) -->
+                            <div class="lily-pad pad-target" id="pad-target-${p.id}"></div>
+                            
+                            <!-- Frog -->
+                            <div class="frog" id="frog-${p.id}">
+                                <div class="frog-eyes"><div class="eye"><div class="pupil"></div></div><div class="eye"><div class="pupil"></div></div></div>
+                                <div class="frog-mouth"></div>
+                            </div>
+                            
+                            <!-- Splash -->
+                            <div class="splash" id="splash-${p.id}"></div>
+                        </div>
+
+                        <!-- Question Area -->
+                        <div class="question-panel">
+                            <div class="question-header">
+                                <span style="font-weight:bold; font-size:0.9rem;">Soal <span id="qnum-${p.id}">1</span>/${this.config.questions}</span>
+                                <div class="timer-bar-bg"><div class="timer-bar" id="timer-${p.id}"></div></div>
+                            </div>
+                            <div class="question-text" id="qtext-${p.id}">Menyiapkan...</div>
+                            <div class="answers-grid" id="ansgrid-${p.id}">
+                                <!-- Buttons generated here -->
+                            </div>
+                        </div>
+                        
+                        <!-- Overlay -->
+                        <div class="player-overlay" id="overlay-${p.id}">
+                            <h2 id="overlay-text-${p.id}">Selesai!</h2>
+                            <p>Skor: <span id="overlay-score-${p.id}">0</span></p>
+                        </div>
+                    `;
+                    board.appendChild(pDiv);
+                });
+            },
+
+            // --- STREAMING_CHUNK:Logika JavaScript - Update UI per Pemain ---
+            renderQuestion(pId) {
+                const p = this.players.find(x => x.id === pId);
+                if (p.status !== 'playing') return;
+
+                const q = p.questions[p.currentQ];
+                
+                // Update text
+                document.getElementById(`qtext-${pId}`).textContent = q.text;
+                document.getElementById(`qnum-${pId}`).textContent = p.currentQ + 1;
+                
+                // Update Progress bar
+                const pct = (p.currentQ / this.config.questions) * 100;
+                document.getElementById(`prog-${pId}`).style.width = `${pct}%`;
+
+                // Render Buttons
+                const grid = document.getElementById(`ansgrid-${pId}`);
+                grid.innerHTML = '';
+                q.options.forEach((opt, idx) => {
+                    const btn = document.createElement('button');
+                    btn.className = 'answer-btn';
+                    btn.textContent = opt;
+                    btn.onclick = () => this.handleAnswer(pId, idx);
+                    grid.appendChild(btn);
+                });
+
+                // Reset visual state
+                document.getElementById(`frog-${pId}`).className = 'frog'; // reset expression
+                document.getElementById(`pad-target-${pId}`).style.opacity = '0';
+                document.getElementById(`pad-target-${pId}`).style.transform = 'scale(0.8)';
+            },
+
+            // --- STREAMING_CHUNK:Logika JavaScript - Timer Management ---
+            startTimer(pId) {
+                const p = this.players.find(x => x.id === pId);
+                if (p.status !== 'playing') return;
+
+                clearInterval(this.activeTimers[pId]);
+                
+                let timeLeft = this.config.timeLimit;
+                const timerBar = document.getElementById(`timer-${pId}`);
+                timerBar.style.width = '100%';
+                timerBar.classList.remove('warning');
+
+                const startTime = Date.now();
+                const totalMs = this.config.timeLimit * 1000;
+
+                this.activeTimers[pId] = setInterval(() => {
+                    if (p.animating) {
+                        // Pause visual timer if animating, adjust start time to compensate
+                        return; 
+                    }
+
+                    const elapsed = Date.now() - startTime;
+                    const remaining = totalMs - elapsed;
+                    
+                    if (remaining <= 0) {
+                        clearInterval(this.activeTimers[pId]);
+                        timerBar.style.width = '0%';
+                        this.handleAnswer(pId, -1); // -1 signifies timeout
+                    } else {
+                        const pct = (remaining / totalMs) * 100;
+                        timerBar.style.width = `${pct}%`;
+                        if (pct < 30) timerBar.classList.add('warning');
+                        else timerBar.classList.remove('warning');
+                    }
+                }, 50);
+            },
+
+            // --- STREAMING_CHUNK:Logika JavaScript - Proses Menjawab & Animasi ---
+            handleAnswer(pId, selectedIdx) {
+                const p = this.players.find(x => x.id === pId);
+                if (p.status !== 'playing' || p.animating) return;
+
+                p.animating = true;
+                clearInterval(this.activeTimers[pId]); // Stop timer
+                
+                // Lock buttons
+                const btns = document.querySelectorAll(`#ansgrid-${pId} .answer-btn`);
+                btns.forEach(b => b.disabled = true);
+
+                const q = p.questions[p.currentQ];
+                const isCorrect = selectedIdx === q.correctIndex;
+                const frog = document.getElementById(`frog-${pId}`);
+                const fbText = document.getElementById(`fb-${pId}`);
+
+                if (isCorrect) {
+                    // JAWABAN BENAR
+                    if(selectedIdx >= 0) btns[selectedIdx].classList.add('correct');
+                    p.score += 10;
+                    p.correctCount++;
+                    document.getElementById(`score-${pId}`).textContent = p.score;
+                    
+                    audioSys.sfxCorrect();
+                    setTimeout(() => audioSys.sfxJump(), 100);
+
+                    // Setup visual target
+                    const targetPad = document.getElementById(`pad-target-${pId}`);
+                    targetPad.style.opacity = '1';
+                    targetPad.style.transform = 'scale(1)';
+
+                    // Animate Frog
+                    frog.classList.add('happy');
+                    frog.classList.add('is-jumping');
+                    
+                    // Feedback text
+                    fbText.textContent = "Hebat!";
+                    fbText.className = "feedback-text feedback-correct show";
+
+                    setTimeout(() => {
+                        frog.classList.remove('is-jumping');
+                        fbText.classList.remove('show');
+                        this.nextQuestion(pId);
+                    }, 800);
+
+                } else {
+                    // JAWABAN SALAH / TIMEOUT
+                    if(selectedIdx >= 0) btns[selectedIdx].classList.add('wrong');
+                    // Tunjukkan yang benar
+                    btns[q.correctIndex].classList.add('correct');
+                    
+                    p.lives--;
+                    document.getElementById(`lives-${pId}`).textContent = p.lives;
+                    
+                    audioSys.sfxWrong();
+                    setTimeout(() => audioSys.sfxSplash(), 300);
+
+                    frog.classList.add('sad');
+                    frog.classList.add('is-falling');
+                    
+                    fbText.textContent = selectedIdx === -1 ? "Waktu Habis!" : "Ups!";
+                    fbText.className = "feedback-text feedback-wrong show";
+
+                    setTimeout(() => {
+                        const splash = document.getElementById(`splash-${pId}`);
+                        splash.classList.add('active');
+                        setTimeout(()=>splash.classList.remove('active'), 500);
+                    }, 300);
+
+                    setTimeout(() => {
+                        frog.classList.remove('is-falling');
+                        fbText.classList.remove('show');
+                        if (p.lives <= 0) {
+                            this.endPlayerRound(pId, 'Kalah!');
+                        } else {
+                            this.nextQuestion(pId);
+                        }
+                    }, 1000);
+                }
+            },
+
+            // --- STREAMING_CHUNK:Logika JavaScript - Transisi Soal & Selesai ---
+            nextQuestion(pId) {
+                const p = this.players.find(x => x.id === pId);
+                p.currentQ++;
+                p.animating = false;
+
+                if (p.currentQ >= this.config.questions) {
+                    this.endPlayerRound(pId, 'Selesai!');
+                } else {
+                    this.renderQuestion(pId);
+                    this.startTimer(pId);
+                }
+            },
+
+            endPlayerRound(pId, message) {
+                const p = this.players.find(x => x.id === pId);
+                p.status = p.lives <= 0 ? 'dead' : 'done';
+                p.animating = false;
+                
+                // Show Overlay
+                const overlay = document.getElementById(`overlay-${pId}`);
+                document.getElementById(`overlay-text-${pId}`).textContent = message;
+                document.getElementById(`overlay-score-${pId}`).textContent = p.score;
+                overlay.classList.add('active');
+
+                this.checkGameEnd();
+            },
+
+            checkGameEnd() {
+                // Check if all players are done or dead
+                const allDone = this.players.every(p => p.status !== 'playing');
+                if (allDone) {
+                    setTimeout(() => {
+                        audioSys.stopBGM();
+                        audioSys.sfxOver();
+                        this.showResults();
+                    }, 1000);
+                }
+            },
+
+            // --- STREAMING_CHUNK:Logika JavaScript - Layar Hasil & Leaderboard ---
+            showResults() {
+                const resDiv = document.getElementById('results-content');
+                resDiv.innerHTML = '';
+
+                // Sort players by score (desc), then correct count (desc)
+                const sortedPlayers = [...this.players].sort((a, b) => {
+                    if (b.score !== a.score) return b.score - a.score;
+                    return b.correctCount - a.correctCount;
+                });
+
+                if (this.config.mode === 'solo') {
+                    const p = sortedPlayers[0];
+                    const acc = Math.round((p.correctCount / this.config.questions) * 100);
+                    resDiv.innerHTML = `
+                        <div style="font-size:4rem; margin:20px 0;">${p.lives > 0 ? '🏆' : '💥'}</div>
+                        <h3 style="font-size:2rem;">Skor Akhir: <span style="color:var(--accent)">${p.score}</span></h3>
+                        <p style="font-size:1.2rem; margin-top:10px;">Jawaban Benar: ${p.correctCount} / ${this.config.questions}</p>
+                        <p style="font-size:1.2rem;">Akurasi: ${acc}%</p>
+                        <p style="font-size:1.2rem;">Sisa Nyawa: ${p.lives}</p>
+                        <p style="margin-top:20px; font-style:italic; color:#64748b;">
+                            ${p.lives > 0 && acc >= 80 ? 'Luar biasa! Kamu sangat pintar matematika.' : 'Terus berlatih ya! Kamu pasti bisa.'}
+                        </p>
+                    `;
+                } else {
+                    // Multiplayer Leaderboard
+                    let html = `<div class="leaderboard">`;
+                    sortedPlayers.forEach((p, idx) => {
+                        const rankClass = idx < 3 ? `rank-${idx+1}` : '';
+                        const medal = idx === 0 ? '🥇' : (idx === 1 ? '🥈' : (idx === 2 ? '🥉' : '👏'));
+                        html += `
+                            <div class="leaderboard-item ${rankClass}">
+                                <div style="display:flex; align-items:center; gap:10px;">
+                                    <span style="font-size:1.5rem;">${medal}</span>
+                                    <span>${p.name}</span>
+                                    ${p.lives <= 0 ? '<span style="color:red; font-size:0.8rem;">(Kalah)</span>' : ''}
+                                </div>
+                                <div style="display:flex; gap:15px;">
+                                    <span>Benar: ${p.correctCount}</span>
+                                    <span style="color:var(--accent); font-weight:900;">⭐ ${p.score}</span>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    html += `</div>`;
+                    resDiv.innerHTML = html;
+                }
+
+                this.showScreen('screen-results');
+            }
+        };
+
+        // --- STREAMING_CHUNK:Inisialisasi Event Listeners ---
+        window.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('btn-audio').addEventListener('click', () => audioSys.toggle());
+            document.getElementById('btn-fullscreen').addEventListener('click', () => app.toggleFullscreen());
+            
+            // Handle Fullscreen icon changes
+            document.addEventListener('fullscreenchange', () => {
+                const btn = document.getElementById('btn-fullscreen');
+                btn.innerHTML = document.fullscreenElement ? '🗗' : '⛶';
+            });
+            
+            // Tambahkan event listener untuk merespons orientasi dan resize (memastikan CSS Grid menyesuaikan tanpa bug scroll)
+            window.addEventListener('resize', () => {
+               // Perbaikan layout spesifik jika diperlukan pada JS, namun CSS Grid sudah menghandle sebagian besar
+            });
+        });
+    </script>
+</body>
+</html>
